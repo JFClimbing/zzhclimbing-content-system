@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.4",
+  "skill_version": "1.0.0",
+  "rubric_version": "v0",
+  "content_form": "tutorial-builder",
+  "typical_duration_seconds": 240,
+  "target_publish_cadence_days": 7,
+  "rubric_form_mismatch": true,
+  "benchmark_status": "pending",
+  "benchmark_name": null,
+  "benchmark_sample_count": 0,
+  "baseline_plays": 1594,
+  "calibration_samples": 0,
+  "data_collection": "adapter",
+  "pool_status": "none",
+  "data_layer": "markdown",
+  "hooks_installed": true,
+  "enabled_trend_sources": [
+    "manual-paste"
+  ],
+  "enabled_perf_adapters": [
+    "douyin-browser"
+  ],
+  "last_bump_at": null,
+  "last_bump_self_audited": false,
+  "last_published_at": null,
+  "last_published_file": null,
+  "last_retro_at": null,
+  "last_trends_run_at": null,
+  "last_trends_added_count": 0,
+  "last_prediction_self_scored": false,
+  "last_self_scored_at": null,
+  "consecutive_directional_errors": [],
+  "pending_retros": [],
+  "shoots": [],
+  "in_progress_session": null,
+  "initialized_at": "2026-10-09T14:09:33+08:00",
+  "account": {
+    "platform": "douyin",
+    "handle": "zzhclimbing",
+    "display_name": "Neverest 不止攀岩",
+    "douyin_uid": null,
+    "region": "广西·桂林",
+    "bio": "不止攀岩｜户外攀登工作室 勇气不止于岩壁，脚步终抵向山巅。",
+    "works": 4,
+    "fans": 67,
+    "likes": 187,
+    "following": 5,
+    "note": "身份于 2026-10-09 从抖音站内实抓确认（非用户口述）。抓数前必须确认创作者中心登录的是本号——同日发现另一项目曾误登入一个徒步账号。"
+  },
+  "content_media": "mixed",
+  "_local_extensions": [
+    "account — 账号身份块（原 schema 无此字段）。存在的理由：本项目组的另一个项目没记账号标识，导致 2026-10-09 无法判断 zzhclimbing 属于哪个项目。",
+    "content_media — 图文/视频形态（mixed）。影响复盘窗口选择：视频走 T+3，图文走 T+7~T+30。"
+  ]
+}

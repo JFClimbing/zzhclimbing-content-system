@@ -1,0 +1,5 @@
+# zzhclimbing-content-system 依赖
+#
+# 只有一个直接依赖。不需要 `playwright install` —— 脚本用系统已装的浏览器
+# （Windows 默认 Edge，macOS / Linux 默认 Chrome），可用 DSH_BROWSER_CHANNEL 覆盖。
+playwright>=1.40
