@@ -121,6 +121,49 @@ python .cheat-hooks/prediction_lock.py selftest   # 自检
 | 登录态 | `.auth-edge/` 项目内相对路径，每账号独立 |
 | 已知限制 | 抖音网页版部分选择器（`data-e2e`）会随改版失效；脚本内已写明每个坑的实测结论 |
 
+### ⚠️ 本机专属：`github.com:443` 不可达，走 SSH 443 跳板
+
+这台机器上 `github.com` 的 TCP 443 **直接超时**（DNS 能解析，但连不上），
+所以 `git push https://github.com/...` 必然失败。但 `ssh.github.com:443`、
+`api.github.com`、`codeload.github.com` 都是通的。
+
+解法是 `~/.ssh/config` 里把 github.com 透明改道 443：
+
+```
+Host github.com
+  HostName ssh.github.com
+  Port 443
+  User git
+  IdentityFile ~/.ssh/id_ed25519
+  IdentitiesOnly yes
+  StrictHostKeyChecking accept-new
+  ServerAliveInterval 30
+```
+
+```bash
+git remote set-url origin git@github.com:<owner>/<repo>.git
+git push -u origin main
+```
+
+**三个必须注意的坑**（都踩过）：
+
+1. **`~/.ssh/config` 和 `known_hosts` 必须是无 BOM 的 UTF-8。** PowerShell 5.1 的
+   `-Encoding UTF8` / `Set-Content` 会写 BOM，ssh 解析会出错。用
+   `[System.IO.File]::WriteAllText($p, $s, (New-Object System.Text.UTF8Encoding($false)))`。
+2. **别用 `HostKeyAlias`。** 加了之后 known_hosts 查找会变成 `[ssh.github.com]:443`，
+   反而触发 `Host key verification failed`。
+3. **known_hosts 需要 `[github.com]:443` 这条记录。** 本机 `ssh-keyscan` 也被挡，
+   所以做法是：把已有的 `[ssh.github.com]:443` 那几行**改个名**复制一份
+   （同一台服务器，密钥相同）。
+
+另外 git 可能用它自己捆绑的 ssh（不读系统 known_hosts）。固定用系统的：
+
+```bash
+git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe -o BatchMode=yes -o ConnectTimeout=20"
+```
+
+（macOS / Linux 上不需要这一整节 —— 直接用 HTTPS 即可。）
+
 ### 踩过的坑（都写在对应脚本的 docstring 里）
 
 - `?showTab=following` **不触发**关注列表渲染 —— SPA 只在点击时挂载
