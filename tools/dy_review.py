@@ -60,8 +60,12 @@ URL = "https://creator.douyin.com/creator-micro/content/manage"
 os.makedirs(DATA, exist_ok=True)
 os.makedirs(USER_DATA, exist_ok=True)
 
-METRIC_ORDER = ["播放", "点赞", "评论", "分享", "收藏", "划走率",
-                "文案展开率", "平均浏览图片数", "吸粉量"]
+# ⚠️ 字段名会随创作者中心改版变化。实测（2026-10-09）当前版本暴露的是：
+#     播放 / 点赞 / 评论 / 分享 / 收藏 / 完播率 / 2秒跳出率 / 吸粉量
+# 旧版的「划走率 / 文案展开率 / 平均浏览图片数」已经不存在了 —— 旧字段名会让
+# 整列抓成 "-"。改版后再跑 --table，若某列变 "-" 就是又改名了。
+METRIC_ORDER = ["播放", "点赞", "评论", "分享", "收藏", "完播率",
+                "2秒跳出率", "吸粉量"]
 
 # 滚动加载列表：Douyin 作品列表是懒加载的自定义滚动容器，必须滚它才出卡片
 SCROLL_JS = """
@@ -92,9 +96,14 @@ EXTRACT_JS = """
       if (lab && val) metrics[lab.innerText.trim()] = val.innerText.trim();
     }
     const head = c.innerText.split('\\n').map(s => s.trim()).filter(Boolean).slice(0, 12);
+    const all = c.innerText.split('\\n').map(s => s.trim()).filter(Boolean);
+    // 卡片第一行是时长（02:07），日期行形如「2026年10月08日 19:30」
+    const duration = all.find(s => /^\\d{1,2}:\\d{2}$/.test(s)) || '';
+    const pub = all.find(s => /\\d{4}\\u5e74\\d{1,2}\\u6708\\d{1,2}\\u65e5/.test(s)) || '';
     // 标题元素里混入了「编辑作品/设置权限/删除作品」等悬停菜单文字，只取第一行
     const titleText = (titleEl ? titleEl.innerText : c.innerText).split('\\n')[0].trim();
-    out.push({ title: titleText, head: head, metrics: metrics });
+    out.push({ title: titleText, head: head, metrics: metrics,
+               duration: duration, publish_date: pub });
   }
   return { count: cards.length, cards: out };
 }
@@ -170,7 +179,8 @@ def parse(cards):
         title = (c.get("title") or "").split("\n")[0].strip()
         m = {k: c.get("metrics", {}).get(k, "-") for k in METRIC_ORDER}
         out.append({"title": title[:120], "raw": m, "images": None,
-                    "date": "", "sched": "", "status": "published", "pinned": False})
+                    "date": c.get("publish_date", ""), "duration": c.get("duration", ""),
+                    "sched": "", "status": "published", "pinned": False})
     return out
 
 
@@ -193,12 +203,13 @@ def last_snapshot(exclude=None):
 
 
 def print_table(posts):
-    print(f"\n{'标题':<24}{'播放':>8}{'赞':>6}{'评':>5}{'享':>5}{'藏':>5}{'划走':>8}{'展开':>8}{'浏览':>6}{'吸粉':>6}")
+    print(f"\n{'时长':>6} {'标题':<22}{'播放':>7}{'赞':>6}{'评':>5}{'享':>5}{'藏':>5}"
+          f"{'完播率':>9}{'2秒跳出':>9}{'吸粉':>6}  发布日期")
     for p in posts:
         r = p["raw"]
-        print(f"{p['title'][:24]:<24}{r['播放']:>8}{r['点赞']:>6}{r['评论']:>5}"
-              f"{r['分享']:>5}{r['收藏']:>5}{r['划走率']:>8}{r['文案展开率']:>8}"
-              f"{r['平均浏览图片数']:>6}{r['吸粉量']:>6}")
+        print(f"{p.get('duration', ''):>6} {p['title'][:22]:<22}{r['播放']:>7}{r['点赞']:>6}"
+              f"{r['评论']:>5}{r['分享']:>5}{r['收藏']:>5}"
+              f"{r['完播率']:>9}{r['2秒跳出率']:>9}{r['吸粉量']:>6}  {p.get('date', '')}")
 
 
 def key(p):
