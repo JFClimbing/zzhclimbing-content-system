@@ -188,6 +188,53 @@ git config --global core.sshCommand "C:/Windows/System32/OpenSSH/ssh.exe -o Batc
 
 ---
 
+## 每周五自动上传 GitHub
+
+已注册 Windows 计划任务，**每周五 23:00** 自动把本项目的改动提交并推到
+[JFClimbing/zzhclimbing-content-system](https://github.com/JFClimbing/zzhclimbing-content-system)。
+
+```
+任务名   zzhclimbing-weekly-push
+触发器   每周五 23:00
+动作     powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass
+         -File tools\auto_push.ps1
+日志     .cheat-cache\auto-push.log   （已 gitignore）
+```
+
+脚本做的事：`git add -A` → **有改动才提交**（消息 `auto: weekly snapshot YYYY-MM-DD`）
+→ `git push origin main`。工作区干净时只 push（no-op），不会造空提交。
+
+### 常用操作
+
+```powershell
+# 看任务状态 / 下次运行时间
+Get-ScheduledTaskInfo -TaskName 'zzhclimbing-weekly-push'
+
+# 立刻手动跑一次
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools\auto_push.ps1
+
+# 看日志
+Get-Content .cheat-cache\auto-push.log -Tail 20
+
+# 改时间（比如改成 22:30）
+Set-ScheduledTask -TaskName 'zzhclimbing-weekly-push' `
+  -Trigger (New-ScheduledTaskTrigger -Weekly -DaysOfWeek Friday -At '22:30')
+
+# 停用 / 恢复 / 删除
+Disable-ScheduledTask -TaskName 'zzhclimbing-weekly-push'
+Enable-ScheduledTask  -TaskName 'zzhclimbing-weekly-push'
+Unregister-ScheduledTask -TaskName 'zzhclimbing-weekly-push' -Confirm:$false
+```
+
+**为什么脚本是纯 ASCII**：Windows PowerShell 5.1 把没有 BOM 的 `.ps1` 按 ANSI 读，
+写中文会在解析阶段就乱掉。所以脚本和提交消息都用 ASCII。
+
+**前提**：`~/.ssh/config` 里 github.com 要指向 `ssh.github.com:443`（见上一节）——
+本机 `github.com:443` 不可达。任务用 `-NoProfile -NonInteractive` 跑，不加载 profile，
+全靠 `core.sshCommand` 那条全局配置定位 ssh。
+
+---
+
 ## 现在该做什么
 
 当前 **校准样本 0 / 5**。要脱离 cold-start，需要 5 次完整闭环：
