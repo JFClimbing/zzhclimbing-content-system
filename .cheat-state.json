@@ -12,7 +12,7 @@
   "baseline_plays": 1594,
   "calibration_samples": 0,
   "data_collection": "adapter",
-  "pool_status": "none",
+  "pool_status": "markdown",
   "data_layer": "markdown",
   "hooks_installed": true,
   "enabled_trend_sources": [
